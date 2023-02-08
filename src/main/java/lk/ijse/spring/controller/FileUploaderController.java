@@ -10,11 +10,11 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import javax.servlet.annotation.MultipartConfig;
 import java.io.File;
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/upload")
 @CrossOrigin
-@MultipartConfig
 public class FileUploaderController {
     @GetMapping()
     public String hello() {

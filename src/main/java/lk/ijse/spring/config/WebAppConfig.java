@@ -1,5 +1,6 @@
 package lk.ijse.spring.config;
 
+import lk.ijse.spring.controller.FileUploadController;
 import lk.ijse.spring.controller.FileUploaderController;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -8,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import javax.servlet.annotation.MultipartConfig;
 
 @Configuration
-@ComponentScan(basePackageClasses = {FileUploaderController.class})
+@ComponentScan(basePackageClasses = {FileUploadController.class})
 @EnableWebMvc
 @MultipartConfig
 public class WebAppConfig {
