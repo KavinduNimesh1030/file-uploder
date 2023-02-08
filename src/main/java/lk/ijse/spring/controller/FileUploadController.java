@@ -3,6 +3,7 @@ package lk.ijse.spring.controller;
 import lk.ijse.spring.service.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -16,7 +17,10 @@ import java.io.IOException;
 import java.util.stream.Collectors;
 
 @Controller
+@EnableJpaRepositories
 public class FileUploadController {
+
+        @Autowired
         private final StorageService storageService;
 
         @Autowired
