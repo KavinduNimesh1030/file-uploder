@@ -4,7 +4,14 @@ import lk.ijse.spring.config.WebAppConfig;
 import lk.ijse.spring.config.WebRootConfig;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
-public class WebAppInitializer  extends AbstractAnnotationConfigDispatcherServletInitializer {
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.ServletRegistration;
+
+/**
+ * @author : Sanu Vithanage
+ * @since : 0.1.0
+ **/
+public class WebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
     @Override
     protected Class<?>[] getRootConfigClasses() {
         return new Class[]{WebRootConfig.class};
@@ -18,5 +25,14 @@ public class WebAppInitializer  extends AbstractAnnotationConfigDispatcherServle
     @Override
     protected String[] getServletMappings() {
         return new String[]{"/"};
+    }
+
+
+    /*
+     * We need to override this method inorder to set MultipartConfigElement
+     */
+    @Override
+    protected void customizeRegistration(ServletRegistration.Dynamic registration) {
+        registration.setMultipartConfig(new MultipartConfigElement(System.getProperty("java.io.tmpdir")));
     }
 }

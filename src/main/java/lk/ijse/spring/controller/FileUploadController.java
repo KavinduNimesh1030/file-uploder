@@ -1,68 +1,97 @@
 package lk.ijse.spring.controller;
 
-import lk.ijse.spring.service.StorageService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.Part;
+import java.io.File;
 import java.io.IOException;
-import java.util.stream.Collectors;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 
-@Controller
-@EnableJpaRepositories
+@RestController
+@RequestMapping("api/v1/upload")
+@CrossOrigin
 public class FileUploadController {
 
-        @Autowired
-        private final StorageService storageService;
+    private static final ArrayList<String> allImages = new ArrayList<>();
 
-        @Autowired
-        public FileUploadController(StorageService storageService) {
-            this.storageService = storageService;
+    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity uploadFile(@RequestPart("myFile") MultipartFile myFile, @RequestPart("myFile") byte[] isFile, @RequestPart("myFile") Part myPart) {
+
+        /*
+         * There are three ways we can obtain this value, but in all cases we need to use
+         * @RequestPart annotation.
+         * 1. Byte Array ( byte [] )
+         * 2. MultipartFile ( Spring way )
+         * 3. Part ( Java EE way )
+         */
+
+        System.out.println(isFile);
+        System.out.println(myPart.getSubmittedFileName());
+
+        System.out.println("================================");
+
+        /**
+         * It is important to note that you can also use @RequestParam annotation if you need
+         * But with that you can't retrieve the data as a byte array
+         */
+
+        System.out.println(myFile.getOriginalFilename());
+        System.out.println(myPart.getSubmittedFileName());
+
+        try {
+            // Let's get the project location
+            // tomcat/webapps/uploads (files uploaded directory)
+            String projectPath = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile().getParentFile().getAbsolutePath();
+
+            // Let's create a folder there for uploading purposes, if not exists
+            File uploadsDir = new File(projectPath + "/uploads");
+            uploadsDir.mkdir();
+
+            // It is time to transfer the file into the newly created dir
+            myFile.transferTo(new File(uploadsDir.getAbsolutePath() + "/" + myFile.getOriginalFilename()));
+
+            return new ResponseEntity("Successfully Uploaded", HttpStatus.OK);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        @GetMapping("/")
-        public String listUploadedFiles(Model model) throws IOException {
 
-            model.addAttribute("files", storageService.loadAll().map(
-                    path -> MvcUriComponentsBuilder.fromMethodName(FileUploadController.class,
-                            "serveFile", path.getFileName().toString()).build().toUri().toString())
-                    .collect(Collectors.toList()));
+    }
 
-            return "uploadForm";
+    //Formalized end-point to upload files using Spring
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity uploadFileWithSpringWay(@RequestPart("myFile") MultipartFile myFile) {
+        try {
+            String projectPath = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile().getParentFile().getAbsolutePath();
+            File uploadsDir = new File(projectPath + "/uploads");
+            System.out.println(projectPath);
+            uploadsDir.mkdir();
+            myFile.transferTo(new File(uploadsDir.getAbsolutePath() + "/" + myFile.getOriginalFilename()));
+
+            //save the path of the uploaded image in the temporary database
+            allImages.add("uploads/" + myFile.getOriginalFilename());
+
+            return  ResponseEntity.ok(HttpStatus.OK);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new ResponseEntity(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
 
-        @GetMapping("/files/{filename:.+}")
-        @ResponseBody
-        public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
-
-            Resource file = storageService.loadAsResource(filename);
-            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION,
-                    "attachment; filename=\"" + file.getFilename() + "\"").body(file);
-        }
-
-        @PostMapping("/")
-        public String handleFileUpload(@RequestParam("file") MultipartFile file,
-                                       RedirectAttributes redirectAttributes) {
-
-            storageService.store(file);
-            redirectAttributes.addFlashAttribute("message",
-                    "You successfully uploaded " + file.getOriginalFilename() + "!");
-
-            return "redirect:/";
-        }
-
-   /*     @ExceptionHandler(StorageFileNotFoundException.class)
-        public ResponseEntity<?> handleStorageFileNotFound(StorageFileNotFoundException exc) {
-            return ResponseEntity.notFound().build();
-        }
-
-    }*/
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity getAllImagesFromDatabase() {
+        return new ResponseEntity(allImages, HttpStatus.OK);
+    }
 }

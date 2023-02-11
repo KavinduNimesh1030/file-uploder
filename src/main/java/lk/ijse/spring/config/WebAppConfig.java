@@ -1,22 +1,33 @@
 package lk.ijse.spring.config;
 
-import lk.ijse.spring.controller.FileUploadController;
-import lk.ijse.spring.controller.FileUploaderController;
-import lk.ijse.spring.service.StorageService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-
-import javax.servlet.annotation.MultipartConfig;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@ComponentScan(basePackageClasses = {FileUploadController.class})
 @EnableWebMvc
-public class WebAppConfig {
-    public WebAppConfig() {
-        System.out.println("WebAppConfig");
+@ComponentScan(basePackages = "lk.ijse.spring")
+public class WebAppConfig implements WebMvcConfigurer {
+
+    /*
+     * First and foremost we need to configure MultipartResolver
+     */
+    @Bean
+    public MultipartResolver multipartResolver() {
+        return new StandardServletMultipartResolver();
     }
 
+    /*
+     * You have to override this method and allocate the url and location for uploaded resources
+     * */
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/uploads/**").addResourceLocations("/uploads/");
+    }
 
 }

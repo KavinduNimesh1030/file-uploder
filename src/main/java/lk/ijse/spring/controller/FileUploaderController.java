@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/upload")
 @CrossOrigin
 public class FileUploaderController {
     @GetMapping()
@@ -21,7 +20,7 @@ public class FileUploaderController {
         return "uploader";
     }
 
-    @PostMapping()
+    @PostMapping("/upload")
     public ResponseEntity<?> handleFileUpload(@RequestParam("file") MultipartFile file ) {
 
         String fileName = file.getOriginalFilename();
